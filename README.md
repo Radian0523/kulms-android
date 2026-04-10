@@ -1,0 +1,49 @@
+# KULMS Android
+
+京都大学LMS (PandA/Sakai) の課題一覧をAndroidネイティブで確認できるアプリ。
+
+[Chrome拡張版](https://github.com/Radian0523/kulms-extension) / [iOS版](https://github.com/Radian0523/kulms-ios) のAndroid移植。
+
+## 機能
+
+- **SSO認証**: WebViewで京大のシングルサインオンに対応
+- **課題一覧**: Sakai Direct APIから全科目の課題を取得し、緊急度別に表示
+- **テスト/クイズ対応**: Sakai sam_pub APIからテスト・クイズも取得し課題と統合表示
+- **提出状態の正確な判定**: 個別課題APIで提出済み・評定済みを正確に判定
+- **締切リマインド**: 24時間前・1時間前にローカル通知
+- **バックグラウンド更新**: WorkManagerで定期的に課題を再取得し通知をスケジュール
+- **オフラインキャッシュ**: Roomで課題をローカル保存。起動時はキャッシュを即座に表示し、更新ボタンで最新データを取得
+
+## 緊急度の分類
+
+| 色 | 分類 | 条件 |
+|---|---|---|
+| 赤 | 緊急 | 24時間以内 / 期限切れ |
+| 黄 | 5日以内 | 5日以内 |
+| 緑 | 14日以内 | 14日以内 |
+| 灰 | その他 | 14日以上先 / 期限なし |
+
+## アーキテクチャ
+
+API呼び出しはすべてWebViewの`evaluateJavascript`経由のJavaScript `fetch()`で実行。標準HTTPクライアント（OkHttp等）ではSakaiのセッションcookieが認証されないため、SSOログインと同一のWebViewインスタンスを使用する設計。
+
+JavaScriptインターフェース（`@JavascriptInterface`）でKotlinコルーチンとJavaScriptを橋渡しし、リクエストIDで並行リクエストを管理。
+
+## 技術スタック
+
+- Kotlin / Jetpack Compose / Room
+- Android 8.0+ (API 26)
+- WebView (SSO認証 + API呼び出し)
+- WorkManager (バックグラウンド更新)
+- AlarmManager + BroadcastReceiver (通知スケジュール)
+
+外部依存: Gson のみ。
+
+## ビルド
+
+Android Studio でプロジェクトを開き、ビルド・実行。初回起動時にSSOでログインすると課題一覧が表示される。
+
+```bash
+# Android Studio で開く
+open -a "Android Studio" .
+```
