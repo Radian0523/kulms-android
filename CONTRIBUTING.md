@@ -46,4 +46,5 @@ worker/            # WorkManager バックグラウンド更新
 
 ## Issue
 
-バグ報告・機能リクエストは [Issue テンプレート](https://github.com/Radian0523/kulms-android/issues/new/choose) を使用してください。
+- バグ報告・機能リクエストは [Issue テンプレート](https://github.com/Radian0523/kulms-android/issues/new/choose) を使用してください
+- フィードバックフォーム: [Google Forms](https://docs.google.com/forms/d/e/1FAIpQLScLn4G2IF1w0-QOWPKZ7R1LXjOq7OocYUmGJLoNA6JBuA20EA/viewform)
