@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -117,7 +118,7 @@ fun SettingsScreen(
             InfoRow("課題数", "${assignments.size}")
             HorizontalDivider()
 
-            // Feedback
+            // Feedback & Support
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier
@@ -139,6 +140,30 @@ fun SettingsScreen(
                 )
                 Text(
                     "ご意見・要望を送る",
+                    modifier = Modifier.padding(start = 12.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://ko-fi.com/radian0523")
+                        )
+                        context.startActivity(intent)
+                    }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "開発を応援する",
                     modifier = Modifier.padding(start = 12.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
