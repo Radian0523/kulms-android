@@ -185,6 +185,9 @@ object SakaiApiClient {
         val graded: Boolean?,
         val grade: String?,
         val userSubmission: Boolean?,
+        val submitted: Boolean?,
+        val draft: Boolean?,
+        val status: String?,
         val dateSubmittedEpochSeconds: Long?
     )
 
@@ -231,8 +234,10 @@ object SakaiApiClient {
                     if (submission.graded == true) {
                         status = "評定済"
                         grade = submission.grade ?: ""
-                    } else if (submission.userSubmission == true || (submission.dateSubmittedEpochSeconds ?: 0) > 0) {
+                    } else if (submission.submitted == true && submission.draft != true) {
                         status = "提出済"
+                    } else if (!submission.status.isNullOrEmpty() && submission.status != "未開始") {
+                        status = submission.status
                     }
                 }
                 // Fallback to list API data
