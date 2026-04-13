@@ -234,7 +234,7 @@ object SakaiApiClient {
                     if (submission.graded == true) {
                         status = "評定済"
                         grade = submission.grade ?: ""
-                    } else if (submission.submitted == true && submission.draft != true) {
+                    } else if (submission.userSubmission == true && submission.draft != true) {
                         status = "提出済"
                     } else if (!submission.status.isNullOrEmpty() && submission.status != "未開始") {
                         status = submission.status

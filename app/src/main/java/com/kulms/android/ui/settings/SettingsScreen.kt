@@ -55,6 +55,8 @@ fun SettingsScreen(
     val lastRefreshed by viewModel.lastRefreshed.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    var autoComplete by remember { mutableStateOf(viewModel.autoComplete) }
+
     val notificationsEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
@@ -78,6 +80,31 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Auto-complete section
+            SectionHeader("課題更新")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("提出状態の自動判定", modifier = Modifier.weight(1f))
+                Switch(
+                    checked = autoComplete,
+                    onCheckedChange = {
+                        autoComplete = it
+                        viewModel.setAutoComplete(it)
+                    }
+                )
+            }
+            Text(
+                "OFFにすると手動チェックのみで完了判定",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)
+            )
+            HorizontalDivider()
+
             // Notifications section
             SectionHeader("通知")
             Row(

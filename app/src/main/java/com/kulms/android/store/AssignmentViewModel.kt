@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class AssignmentViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getInstance(application).assignmentDao()
+    private val prefs = application.getSharedPreferences("kulms_settings", android.content.Context.MODE_PRIVATE)
 
     private val _assignments = MutableStateFlow<List<Assignment>>(emptyList())
     val assignments: StateFlow<List<Assignment>> = _assignments.asStateFlow()
@@ -49,28 +50,40 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
         val assignments: List<Assignment>
     )
 
+    val autoComplete: Boolean
+        get() = prefs.getBoolean("autoComplete", true)
+
+    fun setAutoComplete(enabled: Boolean) {
+        prefs.edit().putBoolean("autoComplete", enabled).apply()
+    }
+
     fun groupedAssignments(): List<GroupedSection> {
         val all = _assignments.value
-        val active = all.filter { !it.isSubmitted && !it.isChecked }
-        val submitted = all.filter { it.isSubmitted && !it.isChecked }
-        val checked = all.filter { it.isChecked }
+        val auto = autoComplete
+        // Hide overdue + completed (submitted or checked)
+        val visible = all.filter { a ->
+            val isCompleted = a.isChecked || (auto && a.isSubmitted)
+            !(a.urgency == Assignment.Urgency.OVERDUE && isCompleted)
+        }
+
+        val active = visible.filter { !(it.isChecked || (auto && it.isSubmitted)) }
+        val completed = visible.filter { it.isChecked || (auto && it.isSubmitted) }
 
         val sorted = active.sortedBy { it.deadline ?: Long.MAX_VALUE }
 
-        val danger = sorted.filter {
-            it.urgency == Assignment.Urgency.OVERDUE || it.urgency == Assignment.Urgency.DANGER
-        }
+        val overdue = sorted.filter { it.urgency == Assignment.Urgency.OVERDUE }
+        val danger = sorted.filter { it.urgency == Assignment.Urgency.DANGER }
         val warning = sorted.filter { it.urgency == Assignment.Urgency.WARNING }
         val success = sorted.filter { it.urgency == Assignment.Urgency.SUCCESS }
         val other = sorted.filter { it.urgency == Assignment.Urgency.OTHER }
 
         val sections = mutableListOf<GroupedSection>()
+        if (overdue.isNotEmpty()) sections.add(GroupedSection("overdue", "遅延提出", "#e85555", overdue))
         if (danger.isNotEmpty()) sections.add(GroupedSection("danger", "緊急", "#e85555", danger))
         if (warning.isNotEmpty()) sections.add(GroupedSection("warning", "5日以内", "#d7aa57", warning))
         if (success.isNotEmpty()) sections.add(GroupedSection("success", "14日以内", "#62b665", success))
         if (other.isNotEmpty()) sections.add(GroupedSection("other", "その他", "#777777", other))
-        if (submitted.isNotEmpty()) sections.add(GroupedSection("submitted", "提出済み", "#777777", submitted))
-        if (checked.isNotEmpty()) sections.add(GroupedSection("checked", "完了済み", "#777777", checked))
+        if (completed.isNotEmpty()) sections.add(GroupedSection("completed", "完了済み", "#777777", completed))
         return sections
     }
 
@@ -136,18 +149,6 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
                 _errorMessage.value = e.localizedMessage ?: "エラーが発生しました"
             }
             _isLoading.value = false
-        }
-    }
-
-    // MARK: - Toggle check
-
-    fun toggleChecked(assignment: Assignment) {
-        viewModelScope.launch {
-            val newChecked = !assignment.isChecked
-            dao.updateChecked(assignment.compositeKey, newChecked)
-            _assignments.value = _assignments.value.map {
-                if (it.compositeKey == assignment.compositeKey) it.copy(isChecked = newChecked) else it
-            }
         }
     }
 

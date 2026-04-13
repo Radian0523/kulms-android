@@ -103,7 +103,6 @@ fun AssignmentListScreen(viewModel: AssignmentViewModel) {
                         isLoading = isLoading,
                         progress = progress,
                         lastRefreshedText = viewModel.lastRefreshedText,
-                        onToggleChecked = { viewModel.toggleChecked(it) },
                         onRefresh = { viewModel.fetchAll(forceRefresh = true) }
                     )
                 }
@@ -118,7 +117,6 @@ private fun AssignmentList(
     isLoading: Boolean,
     progress: Pair<Int, Int>?,
     lastRefreshedText: String,
-    onToggleChecked: (com.kulms.android.data.model.Assignment) -> Unit,
     onRefresh: () -> Unit
 ) {
     LazyColumn(
@@ -187,8 +185,7 @@ private fun AssignmentList(
             }
             items(section.assignments, key = { it.compositeKey }) { assignment ->
                 AssignmentCard(
-                    assignment = assignment,
-                    onToggleChecked = { onToggleChecked(assignment) }
+                    assignment = assignment
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(start = 40.dp),
