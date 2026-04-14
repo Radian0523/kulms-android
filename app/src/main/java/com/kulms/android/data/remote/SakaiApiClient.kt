@@ -171,6 +171,7 @@ object SakaiApiClient {
 
     data class RawQuiz(
         val title: String?,
+        val startDate: FlexibleTimestamp?,
         val dueDate: FlexibleTimestamp?,
         val retractDate: FlexibleTimestamp?,
         val submitted: Boolean?,
@@ -276,8 +277,11 @@ object SakaiApiClient {
                 )
             }
 
-            // Process quizzes
+            // Process quizzes (未公開クイズを除外: startDate が未来のものは非表示)
             for (quiz in result.quizzes) {
+                val startMs = quiz.startDate?.epochMillis
+                if (startMs != null && startMs > now) continue
+
                 val deadline = quiz.dueDate?.epochMillis ?: quiz.retractDate?.epochMillis
 
                 var status = ""
