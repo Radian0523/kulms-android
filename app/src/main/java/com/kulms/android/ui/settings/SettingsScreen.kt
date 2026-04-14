@@ -98,7 +98,7 @@ fun SettingsScreen(
                 )
             }
             Text(
-                "OFFにすると手動チェックのみで完了判定",
+                "OFFにすると手動チェックのみで完了判定\n※クイズ・テストは手動チェックのみ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)

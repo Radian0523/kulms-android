@@ -308,8 +308,7 @@ object SakaiApiClient {
 
                 val deadline = quiz.dueDate?.epochMillis ?: quiz.retractDate?.epochMillis
 
-                var status = ""
-                if (quiz.submitted == true) status = "提出済"
+                val status = ""
 
                 assignments.add(
                     Assignment(
