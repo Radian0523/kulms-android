@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.2
+
+- **未公開クイズが課題一覧に表示される問題を修正**
+  - Sakai の `sam_pub_collection` API は `startDate`（公開開始時刻）が未来のクイズも返すが、フィルタしていなかったため未公開のテスト・クイズが表示されていた
+  - `RawQuiz` に `startDate` フィールドを追加し、`startDate > 現在時刻` のクイズを除外（ブラウザ拡張 v1.11.2 / Comfortable Sakai 準拠）
+- **fetch 中のセッション切れ検知 + キャッシュ保護**
+  - `checkSession()` 後に `fetchAllAssignments()` の途中でセッションが切れた場合、各 fetch が空リストを返し `dao.replaceAll()` で既存キャッシュが部分データに上書きされていた
+  - WebViewFetcher の JS fetch 内でリダイレクト URL / Content-Type を検知し `SessionExpiredException` を送出
+  - `SakaiApiClient` の各 fetch メソッドで `SessionExpiredException` を上位に伝播
+  - `AssignmentViewModel` / `RefreshWorker` で catch し、`dao.replaceAll()` をスキップして既存キャッシュを保護
+  - ブラウザ拡張 v1.11.1 の `LoggedOutError` 伝播方式と同等の挙動
+
 ## v1.0.1
 
 - 「取組中」の課題が「完了済み」に誤分類されるバグを修正
