@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.kulms.android.data.local.AppDatabase
 import com.kulms.android.data.remote.SakaiApiClient
+import com.kulms.android.data.remote.SessionExpiredException
 import com.kulms.android.notification.NotificationHelper
 import java.util.concurrent.TimeUnit
 
@@ -51,6 +52,10 @@ class RefreshWorker(
             NotificationHelper.scheduleNotifications(applicationContext, assignments)
 
             Log.d(TAG, "Background refresh completed: ${assignments.size} assignments")
+            Result.success()
+        } catch (e: SessionExpiredException) {
+            // セッション切れ: キャッシュを保護し、次回リトライに任せる
+            Log.w(TAG, "Background refresh: session expired mid-fetch, preserving cache")
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Background refresh failed", e)

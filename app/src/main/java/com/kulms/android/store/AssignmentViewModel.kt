@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.kulms.android.data.local.AppDatabase
 import com.kulms.android.data.model.Assignment
 import com.kulms.android.data.remote.SakaiApiClient
+import com.kulms.android.data.remote.SessionExpiredException
 import com.kulms.android.notification.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -144,6 +145,10 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
                 // Schedule notifications
                 NotificationHelper.scheduleNotifications(getApplication(), newAssignments)
 
+            } catch (e: SessionExpiredException) {
+                // セッション切れ: キャッシュを保護し、既存データを維持する
+                Log.w(TAG, "fetchAll: session expired mid-fetch, preserving cache")
+                _isLoggedIn.value = false
             } catch (e: Exception) {
                 Log.e(TAG, "fetchAll error", e)
                 _errorMessage.value = e.localizedMessage ?: "エラーが発生しました"

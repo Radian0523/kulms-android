@@ -51,6 +51,8 @@ object SakaiApiClient {
             val collection = gson.fromJson(text, AssignmentCollection::class.java)
             Log.d(TAG, "fetchAssignments($siteId): ${collection.assignmentCollection.size} items")
             collection.assignmentCollection
+        } catch (e: SessionExpiredException) {
+            throw e // セッション切れは上位に伝播
         } catch (e: Exception) {
             Log.e(TAG, "fetchAssignments($siteId) error", e)
             emptyList()
@@ -65,6 +67,8 @@ object SakaiApiClient {
             val collection = gson.fromJson(text, QuizCollection::class.java)
             Log.d(TAG, "fetchQuizzes($siteId): ${collection.samPubCollection.size} items")
             collection.samPubCollection
+        } catch (e: SessionExpiredException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "fetchQuizzes($siteId) error", e)
             emptyList()
@@ -77,6 +81,8 @@ object SakaiApiClient {
         return try {
             val text = WebViewFetcher.fetch("/direct/assignment/item/$entityId.json")
             gson.fromJson(text, RawAssignmentItem::class.java)
+        } catch (e: SessionExpiredException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "fetchAssignmentItem($entityId) error", e)
             null

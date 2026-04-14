@@ -18,6 +18,9 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/** セッション切れを示す例外。fetch 中にログアウトを検知した場合に送出する。 */
+class SessionExpiredException : Exception("Session expired")
+
 /**
  * Singleton WebView used for both SSO login display and API calls.
  *
@@ -68,6 +71,13 @@ object WebViewFetcher {
                     (async function() {
                         try {
                             const r = await fetch('$escaped', {credentials:'include', cache:'no-store'});
+                            if (r.redirected && /\/portal\/(x?login|relogin|logout)/.test(r.url)) {
+                                throw new Error('SESSION_EXPIRED');
+                            }
+                            var ct = r.headers.get('content-type') || '';
+                            if (ct && ct.indexOf('json') === -1) {
+                                throw new Error('SESSION_EXPIRED');
+                            }
                             if (!r.ok) throw new Error('HTTP ' + r.status);
                             const text = await r.text();
                             Android.onResult('$requestId', text);
@@ -103,7 +113,8 @@ object WebViewFetcher {
         @JavascriptInterface
         fun onError(requestId: String, error: String) {
             Log.e(TAG, "onError: $requestId - $error")
-            pendingRequests.remove(requestId)?.resumeWithException(Exception(error))
+            val exception = if (error == "SESSION_EXPIRED") SessionExpiredException() else Exception(error)
+            pendingRequests.remove(requestId)?.resumeWithException(exception)
         }
     }
 }
