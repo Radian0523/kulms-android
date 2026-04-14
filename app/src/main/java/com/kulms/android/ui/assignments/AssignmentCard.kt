@@ -115,7 +115,7 @@ fun AssignmentCard(
             // Status badge
             if (assignment.isSubmitted) {
                 val statusLabel = when {
-                    assignment.status.contains("評定済") || assignment.status.lowercase().contains("graded") -> "評定済"
+                    assignment.status.contains("評定済") || assignment.status.lowercase().contains("graded") || assignment.status.contains("採点済") -> "評定済"
                     assignment.status.contains("提出済") || assignment.status.lowercase().contains("submitted") -> "提出済"
                     else -> assignment.status
                 }

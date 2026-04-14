@@ -194,6 +194,7 @@ object SakaiApiClient {
         val userSubmission: Boolean?,
         val submitted: Boolean?,
         val draft: Boolean?,
+        val returned: Boolean?,
         val status: String?,
         val dateSubmittedEpochSeconds: Long?
     )
@@ -234,16 +235,33 @@ object SakaiApiClient {
                     ?: raw.closeTime?.epochMillis
 
                 // Determine status from individual API first
+                // Sakai status文字列はフローチャート（時間比較含む）に基づく正確な判定。
+                // Booleanフィールド（graded, returned等）は前回の提出状態が残るため
+                // 単体では状態#11（返却後に作業中）等を正しく判定できない。
+                // 参照: kulms-extension/docs/sakai-submission-states.md
                 var status = ""
                 var grade = ""
                 val submission = detail.submissions.firstOrNull()
                 if (submission != null) {
-                    if (submission.graded == true) {
-                        status = "評定済"
+                    val subStatus = (submission.status ?: "").lowercase()
+                    val statusIndicatesSubmitted =
+                        subStatus.contains("提出済") || subStatus.contains("submitted") ||
+                        subStatus.contains("再提出") || subStatus.contains("resubmitted") ||
+                        subStatus.contains("評定済") || subStatus.contains("graded") ||
+                        subStatus.contains("採点済") ||
+                        subStatus.contains("返却") || subStatus.contains("returned")
+
+                    if (statusIndicatesSubmitted) {
+                        if (submission.graded == true && submission.returned == true) {
+                            status = "評定済"
+                        } else {
+                            status = "提出済"
+                        }
                         grade = submission.grade ?: ""
-                    } else if (submission.userSubmission == true && submission.draft != true) {
+                    } else if (submission.userSubmission == true && submission.draft != true && submission.status.isNullOrEmpty()) {
                         status = "提出済"
-                    } else if (!submission.status.isNullOrEmpty() && submission.status != "未開始") {
+                        if (submission.graded == true) grade = submission.grade ?: ""
+                    } else if (!submission.status.isNullOrEmpty() && submission.status != "未開始" && submission.status.lowercase() != "not started") {
                         status = submission.status
                     }
                 }
