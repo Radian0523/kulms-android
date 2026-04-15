@@ -1,4 +1,4 @@
-package com.kulms.android.ui.assignments
+package com.radian0523.kulms_plus_for_android.ui.assignments
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,8 +43,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kulms.android.store.AssignmentViewModel
-import com.kulms.android.ui.settings.SettingsScreen
+import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
+import com.radian0523.kulms_plus_for_android.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

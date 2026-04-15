@@ -1,14 +1,14 @@
-package com.kulms.android.store
+package com.radian0523.kulms_plus_for_android.store
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.kulms.android.data.local.AppDatabase
-import com.kulms.android.data.model.Assignment
-import com.kulms.android.data.remote.SakaiApiClient
-import com.kulms.android.data.remote.SessionExpiredException
-import com.kulms.android.notification.NotificationHelper
+import com.radian0523.kulms_plus_for_android.data.local.AppDatabase
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.data.remote.SakaiApiClient
+import com.radian0523.kulms_plus_for_android.data.remote.SessionExpiredException
+import com.radian0523.kulms_plus_for_android.notification.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -180,7 +180,7 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
             _assignments.value = emptyList()
             _lastRefreshed.value = null
             _isLoggedIn.value = false
-            com.kulms.android.data.remote.WebViewFetcher.clearData()
+            com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher.clearData()
         }
     }
 

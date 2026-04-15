@@ -1,4 +1,4 @@
-package com.kulms.android.ui.login
+package com.radian0523.kulms_plus_for_android.ui.login
 
 import android.view.ViewGroup
 import android.webkit.WebViewClient
@@ -24,8 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.kulms.android.data.remote.WebViewFetcher
-import com.kulms.android.store.AssignmentViewModel
+import com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher
+import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

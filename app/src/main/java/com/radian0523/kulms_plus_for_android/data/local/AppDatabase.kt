@@ -1,10 +1,10 @@
-package com.kulms.android.data.local
+package com.radian0523.kulms_plus_for_android.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.kulms.android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
 
 @Database(entities = [Assignment::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {

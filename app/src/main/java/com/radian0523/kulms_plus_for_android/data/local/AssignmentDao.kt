@@ -1,11 +1,11 @@
-package com.kulms.android.data.local
+package com.radian0523.kulms_plus_for_android.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.kulms.android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
 import kotlinx.coroutines.flow.Flow
 
 @Dao

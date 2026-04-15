@@ -1,4 +1,4 @@
-package com.kulms.android.ui.assignments
+package com.radian0523.kulms_plus_for_android.ui.assignments
 
 import android.content.Intent
 import android.net.Uri
@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kulms.android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

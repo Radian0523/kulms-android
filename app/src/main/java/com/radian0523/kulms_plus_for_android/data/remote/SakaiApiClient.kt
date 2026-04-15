@@ -1,9 +1,9 @@
-package com.kulms.android.data.remote
+package com.radian0523.kulms_plus_for_android.data.remote
 
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import com.kulms.android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

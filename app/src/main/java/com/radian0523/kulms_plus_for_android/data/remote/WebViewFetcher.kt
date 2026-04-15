@@ -1,4 +1,4 @@
-package com.kulms.android.data.remote
+package com.radian0523.kulms_plus_for_android.data.remote
 
 import android.annotation.SuppressLint
 import android.content.Context

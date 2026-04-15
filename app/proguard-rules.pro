@@ -1,7 +1,7 @@
 # Keep WebView JavaScript interface
--keepclassmembers class com.kulms.android.data.remote.WebViewFetcher$JsBridge {
+-keepclassmembers class com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher$JsBridge {
     public *;
 }
 
 # Keep Room entities
--keep class com.kulms.android.data.model.** { *; }
+-keep class com.radian0523.kulms_plus_for_android.data.model.** { *; }

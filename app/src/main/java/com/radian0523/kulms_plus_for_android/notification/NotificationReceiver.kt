@@ -1,4 +1,4 @@
-package com.kulms.android.notification
+package com.radian0523.kulms_plus_for_android.notification
 
 import android.content.BroadcastReceiver
 import android.content.Context

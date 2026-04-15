@@ -1,4 +1,4 @@
-package com.kulms.android.notification
+package com.radian0523.kulms_plus_for_android.notification
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -9,8 +9,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.kulms.android.R
-import com.kulms.android.data.model.Assignment
+import com.radian0523.kulms_plus_for_android.R
+import com.radian0523.kulms_plus_for_android.data.model.Assignment
 
 object NotificationHelper {
     private const val CHANNEL_ID = "kulms_deadline"

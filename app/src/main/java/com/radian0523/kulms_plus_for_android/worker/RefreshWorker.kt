@@ -1,4 +1,4 @@
-package com.kulms.android.worker
+package com.radian0523.kulms_plus_for_android.worker
 
 import android.content.Context
 import android.util.Log
@@ -7,10 +7,10 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.kulms.android.data.local.AppDatabase
-import com.kulms.android.data.remote.SakaiApiClient
-import com.kulms.android.data.remote.SessionExpiredException
-import com.kulms.android.notification.NotificationHelper
+import com.radian0523.kulms_plus_for_android.data.local.AppDatabase
+import com.radian0523.kulms_plus_for_android.data.remote.SakaiApiClient
+import com.radian0523.kulms_plus_for_android.data.remote.SessionExpiredException
+import com.radian0523.kulms_plus_for_android.notification.NotificationHelper
 import java.util.concurrent.TimeUnit
 
 class RefreshWorker(

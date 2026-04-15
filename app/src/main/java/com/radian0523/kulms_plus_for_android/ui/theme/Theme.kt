@@ -1,4 +1,4 @@
-package com.kulms.android.ui.theme
+package com.radian0523.kulms_plus_for_android.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme

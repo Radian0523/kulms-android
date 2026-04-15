@@ -1,4 +1,4 @@
-package com.kulms.android.data.model
+package com.radian0523.kulms_plus_for_android.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

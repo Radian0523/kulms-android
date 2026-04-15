@@ -1,4 +1,4 @@
-package com.kulms.android.ui.settings
+package com.radian0523.kulms_plus_for_android.ui.settings
 
 import android.Manifest
 import android.content.Intent
@@ -50,8 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.kulms.android.notification.NotificationHelper
-import com.kulms.android.store.AssignmentViewModel
+import com.radian0523.kulms_plus_for_android.notification.NotificationHelper
+import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
 
 private val PRESET_OFFSETS = listOf(
     "10分前" to 10,

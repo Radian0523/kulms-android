@@ -1,4 +1,4 @@
-package com.kulms.android
+package com.radian0523.kulms_plus_for_android
 
 import android.Manifest
 import android.os.Build
@@ -14,10 +14,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kulms.android.store.AssignmentViewModel
-import com.kulms.android.ui.assignments.AssignmentListScreen
-import com.kulms.android.ui.login.LoginScreen
-import com.kulms.android.ui.theme.KULMSTheme
+import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
+import com.radian0523.kulms_plus_for_android.ui.assignments.AssignmentListScreen
+import com.radian0523.kulms_plus_for_android.ui.login.LoginScreen
+import com.radian0523.kulms_plus_for_android.ui.theme.KULMSTheme
 
 class MainActivity : ComponentActivity() {
     private val notificationPermission = registerForActivityResult(
