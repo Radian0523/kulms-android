@@ -1,6 +1,6 @@
 # KULMS Android
 
-京都大学LMS (PandA/Sakai) の課題一覧をAndroidネイティブで確認できるアプリ。
+京都大学LMS (KULMS/Sakai) の課題一覧をAndroidネイティブで確認できるアプリ。
 
 [Chrome拡張版](https://github.com/Radian0523/kulms-extension) / [iOS版](https://github.com/Radian0523/kulms-ios) のAndroid移植。
 
