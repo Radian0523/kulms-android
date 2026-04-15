@@ -157,6 +157,15 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    // MARK: - Reschedule notifications (after settings change)
+
+    fun rescheduleNotifications() {
+        val current = _assignments.value
+        if (current.isNotEmpty()) {
+            NotificationHelper.scheduleNotifications(getApplication(), current)
+        }
+    }
+
     // MARK: - Login state
 
     fun setLoggedIn(loggedIn: Boolean) {

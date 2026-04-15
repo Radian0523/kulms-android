@@ -6,24 +6,32 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -42,9 +50,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.kulms.android.notification.NotificationHelper
 import com.kulms.android.store.AssignmentViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val PRESET_OFFSETS = listOf(
+    "10分前" to 10,
+    "30分前" to 30,
+    "1時間前" to 60,
+    "3時間前" to 180,
+    "5時間前" to 300,
+    "12時間前" to 720,
+    "24時間前" to 1440,
+    "2日前" to 2880,
+    "3日前" to 4320,
+)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: AssignmentViewModel,
@@ -54,8 +75,12 @@ fun SettingsScreen(
     val assignments by viewModel.assignments.collectAsState()
     val lastRefreshed by viewModel.lastRefreshed.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showOffsetPicker by remember { mutableStateOf(false) }
 
     var autoComplete by remember { mutableStateOf(viewModel.autoComplete) }
+    var notificationOffsets by remember {
+        mutableStateOf(NotificationHelper.getNotificationOffsets(context))
+    }
 
     val notificationsEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
@@ -128,14 +153,90 @@ fun SettingsScreen(
                 )
             }
             if (notificationsEnabled) {
-                Text(
-                    "締切24時間前と1時間前に通知します",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)
-                )
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+                    Text(
+                        "通知タイミング",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        for (offset in notificationOffsets.sortedDescending()) {
+                            InputChip(
+                                selected = false,
+                                onClick = {
+                                    if (notificationOffsets.size > 1) {
+                                        val updated = notificationOffsets.filter { it != offset }
+                                        NotificationHelper.setNotificationOffsets(context, updated)
+                                        notificationOffsets = updated.sortedDescending()
+                                        viewModel.rescheduleNotifications()
+                                    }
+                                },
+                                label = { Text(NotificationHelper.formatOffsetLabel(offset)) },
+                                trailingIcon = if (notificationOffsets.size > 1) {
+                                    {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "削除",
+                                            modifier = Modifier.size(InputChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+                        if (notificationOffsets.size < 5) {
+                            AssistChip(
+                                onClick = { showOffsetPicker = true },
+                                label = { Text("追加") },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(InputChipDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
             }
             HorizontalDivider()
+
+            // Offset picker dialog
+            if (showOffsetPicker) {
+                val available = PRESET_OFFSETS.filter { it.second !in notificationOffsets }
+                AlertDialog(
+                    onDismissRequest = { showOffsetPicker = false },
+                    title = { Text("通知タイミングを追加") },
+                    text = {
+                        Column {
+                            for ((label, minutes) in available) {
+                                TextButton(
+                                    onClick = {
+                                        val updated = notificationOffsets + minutes
+                                        NotificationHelper.setNotificationOffsets(context, updated)
+                                        notificationOffsets = updated.sortedDescending()
+                                        viewModel.rescheduleNotifications()
+                                        showOffsetPicker = false
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(label)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {},
+                    dismissButton = {
+                        TextButton(onClick = { showOffsetPicker = false }) {
+                            Text("キャンセル")
+                        }
+                    }
+                )
+            }
 
             // Info section
             SectionHeader("情報")
