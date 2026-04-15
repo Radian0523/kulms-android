@@ -22,6 +22,13 @@ FONT_REGULAR = "/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc"
 
 SRC_01 = os.path.expanduser("~/Downloads/IMG_0257.PNG")
 SRC_02 = os.path.expanduser("~/Downloads/IMG_0258.PNG")
+SRC_IPAD = os.path.expanduser("~/Downloads/Gemini_Generated_Image_9cgrz59cgrz59cgr.png")
+
+# タブレット用タイトル (iPad 画像流用)
+TITLE_T1 = "タブレットの大画面で\n課題をまとめて確認"
+SUB_T1 = "緊急度別に色分け表示"
+TITLE_T2 = "締切を逃さない\nスマートな通知設定"
+SUB_T2 = "タイミングを最大5個まで自由にカスタマイズ"
 
 # 画面1: 課題一覧（青系）
 BG1_TOP = (41, 98, 255)
@@ -187,45 +194,49 @@ def gen_phone(src, title, subtitle, bg_top, bg_bot, output):
     print(f"Saved: {out} ({W}x{H})")
 
 
-# ============ 4. タブレット (16:9 横長) ============
+# ============ 4. タブレット (16:9 横長, iPad ランドスケープ画像を使用) ============
 def gen_tablet(W, H, src, title, subtitle, bg_top, bg_bot, output, title_size, sub_size):
+    """タイトルを上部に配置し、横長 iPad スクリーンショットを下部いっぱいに表示."""
     bg = make_gradient(W, H, bg_top, bg_bot).convert("RGBA")
     draw = ImageDraw.Draw(bg)
 
-    # 左側にテキスト、右側にデバイス
     title_font = ImageFont.truetype(FONT_BOLD, title_size)
     sub_font = ImageFont.truetype(FONT_REGULAR, sub_size)
 
-    # テキスト (左半分の中央付近に配置)
-    text_x_margin = int(W * 0.07)
-    text_area_w = int(W * 0.5) - text_x_margin
-    text_block_h = 0
+    # タイトル (上部中央)
+    y = int(H * 0.06)
     for line in title.split("\n"):
-        text_block_h += int(title_size * 1.25)
-    text_block_h += sub_size + 40  # subtitle + gap
-    text_y = (H - text_block_h) // 2
-
-    y = text_y
-    for line in title.split("\n"):
-        draw.text((text_x_margin, y), line, fill="white", font=title_font)
+        bbox = title_font.getbbox(line)
+        lw = bbox[2] - bbox[0]
+        draw.text(((W - lw) / 2, y), line, fill="white", font=title_font)
         y += int(title_size * 1.25)
-    y += 30
-    draw.text((text_x_margin, y), subtitle, fill=(255, 255, 255, 220), font=sub_font)
 
-    # デバイスモックアップ（右半分の中央）
+    # サブタイトル
+    y += 20
+    sub_bbox = sub_font.getbbox(subtitle)
+    sub_w = sub_bbox[2] - sub_bbox[0]
+    draw.text(((W - sub_w) / 2, y), subtitle, fill=(255, 255, 255, 220), font=sub_font)
+    text_bottom = y + sub_size + 30
+
+    # iPad スクリーンショット (下部、残り領域に収まるようにフィット)
     ss = Image.open(src).convert("RGBA")
-    target_h = int(H * 0.82)
-    scale = target_h / ss.height
-    target_w = int(ss.width * scale)
+    available_h = H - text_bottom - int(H * 0.06)  # 下部マージン 6%
+    target_h = available_h
+    target_w = int(ss.width * (target_h / ss.height))
+    max_w = int(W * 0.88)
+    if target_w > max_w:
+        target_w = max_w
+        target_h = int(ss.height * (target_w / ss.width))
     ss = ss.resize((target_w, target_h), Image.LANCZOS)
+
     corner_r = int(36 * (H / 1920))
     ss = add_rounded_corners(ss, corner_r)
 
     blur_r = int(40 * (H / 1920))
     shadow, blur_r = add_shadow(ss, offset=(0, 15), blur_radius=blur_r, opacity=60)
 
-    ss_x = int(W * 0.58)
-    ss_y = (H - target_h) // 2
+    ss_x = (W - target_w) // 2
+    ss_y = text_bottom + (available_h - target_h) // 2
     bg.paste(shadow, (ss_x - blur_r, ss_y - blur_r), shadow)
     bg.paste(ss, (ss_x, ss_y), ss)
 
@@ -245,16 +256,16 @@ if __name__ == "__main__":
     gen_phone(SRC_01, TITLE1, SUB1, BG1_TOP, BG1_BOT, "phone_01_assignment.png")
     gen_phone(SRC_02, TITLE2, SUB2, BG2_TOP, BG2_BOT, "phone_02_settings.png")
 
-    # 4. 7インチタブレット (1920x1080)
-    gen_tablet(1920, 1080, SRC_01, TITLE1, SUB1, BG1_TOP, BG1_BOT,
+    # 4. 7インチタブレット (1920x1080) — iPad 画像を使用
+    gen_tablet(1920, 1080, SRC_IPAD, TITLE_T1, SUB_T1, BG1_TOP, BG1_BOT,
                "tablet7_01_assignment.png", title_size=72, sub_size=38)
-    gen_tablet(1920, 1080, SRC_02, TITLE2, SUB2, BG2_TOP, BG2_BOT,
+    gen_tablet(1920, 1080, SRC_IPAD, TITLE_T2, SUB_T2, BG2_TOP, BG2_BOT,
                "tablet7_02_settings.png", title_size=72, sub_size=38)
 
-    # 5. 10インチタブレット (2560x1440)
-    gen_tablet(2560, 1440, SRC_01, TITLE1, SUB1, BG1_TOP, BG1_BOT,
+    # 5. 10インチタブレット (2560x1440) — iPad 画像を使用
+    gen_tablet(2560, 1440, SRC_IPAD, TITLE_T1, SUB_T1, BG1_TOP, BG1_BOT,
                "tablet10_01_assignment.png", title_size=96, sub_size=50)
-    gen_tablet(2560, 1440, SRC_02, TITLE2, SUB2, BG2_TOP, BG2_BOT,
+    gen_tablet(2560, 1440, SRC_IPAD, TITLE_T2, SUB_T2, BG2_TOP, BG2_BOT,
                "tablet10_02_settings.png", title_size=96, sub_size=50)
 
     print("Done!")
