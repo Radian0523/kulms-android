@@ -296,7 +296,8 @@ object SakaiApiClient {
                         isChecked = false,
                         cachedAt = now,
                         itemType = "assignment",
-                        entityId = raw.assignmentId ?: ""
+                        entityId = raw.assignmentId ?: "",
+                        closeTime = raw.closeTime?.epochMillis
                     )
                 )
             }
@@ -323,7 +324,8 @@ object SakaiApiClient {
                         isChecked = false,
                         cachedAt = now,
                         itemType = "quiz",
-                        entityId = quiz.publishedAssessmentId?.toString() ?: ""
+                        entityId = quiz.publishedAssessmentId?.toString() ?: "",
+                        closeTime = quiz.retractDate?.epochMillis
                     )
                 )
             }

@@ -23,7 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -278,7 +278,7 @@ fun SettingsScreen(
                     .clickable {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://ko-fi.com/radian0523")
+                            Uri.parse("https://radian0523.github.io/kulms-extension/")
                         )
                         context.startActivity(intent)
                     }
@@ -286,12 +286,12 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.Favorite,
+                    Icons.Default.Info,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "開発を応援する",
+                    "ホームページ",
                     modifier = Modifier.padding(start = 12.dp),
                     color = MaterialTheme.colorScheme.primary
                 )

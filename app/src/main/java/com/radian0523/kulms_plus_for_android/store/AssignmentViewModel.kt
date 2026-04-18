@@ -36,6 +36,11 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
     private val _lastRefreshed = MutableStateFlow<Long?>(null)
     val lastRefreshed: StateFlow<Long?> = _lastRefreshed.asStateFlow()
 
+    private val _collapsedSections = MutableStateFlow(
+        prefs.getStringSet("collapsedSections", setOf("completed"))?.toSet() ?: setOf("completed")
+    )
+    val collapsedSections: StateFlow<Set<String>> = _collapsedSections.asStateFlow()
+
     private val cacheTTL = 30 * 60 * 1000L // 30 min
 
     companion object {
@@ -56,6 +61,17 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
 
     fun setAutoComplete(enabled: Boolean) {
         prefs.edit().putBoolean("autoComplete", enabled).apply()
+    }
+
+    fun toggleSection(sectionId: String) {
+        val current = _collapsedSections.value.toMutableSet()
+        if (current.contains(sectionId)) {
+            current.remove(sectionId)
+        } else {
+            current.add(sectionId)
+        }
+        _collapsedSections.value = current
+        prefs.edit().putStringSet("collapsedSections", current).apply()
     }
 
     fun groupedAssignments(): List<GroupedSection> {
@@ -181,6 +197,7 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
             _lastRefreshed.value = null
             _isLoggedIn.value = false
             com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher.clearData()
+            com.radian0523.kulms_plus_for_android.data.local.CredentialStore.clear(getApplication())
         }
     }
 

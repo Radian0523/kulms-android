@@ -1,7 +1,6 @@
 package com.radian0523.kulms_plus_for_android.ui.login
 
 import android.view.ViewGroup
-import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +12,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,14 +31,49 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * ログイン画面のルート。
+ * デフォルトでは独自 UI（CredentialLoginScreen）を表示。
+ * 多要素認証が必要な場合や、ユーザーが明示的に選択した場合は WebView ログイン UI に切り替える。
+ */
 @Composable
 fun LoginScreen(viewModel: AssignmentViewModel) {
+    var useWebView by remember { mutableStateOf(false) }
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
+    // セッション切れで再ログインに戻る場合は credential 入力画面に戻す
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) {
+            useWebView = false
+        }
+    }
+
+    if (useWebView) {
+        WebViewLoginPanel(
+            viewModel = viewModel,
+            onBack = { useWebView = false }
+        )
+    } else {
+        CredentialLoginScreen(
+            viewModel = viewModel,
+            onRequireWebViewLogin = { useWebView = true }
+        )
+    }
+}
+
+/**
+ * 従来の WebView ベースのログイン UI（多要素認証用フォールバック）。
+ */
+@Composable
+private fun WebViewLoginPanel(
+    viewModel: AssignmentViewModel,
+    onBack: () -> Unit
+) {
     var isVerifying by remember { mutableStateOf(false) }
     var errorText by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // WebView for SSO login
         AndroidView(
             modifier = Modifier
                 .fillMaxWidth()
@@ -48,17 +84,13 @@ fun LoginScreen(viewModel: AssignmentViewModel) {
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    webViewClient = WebViewClient()
-                    loadUrl("${WebViewFetcher.BASE_URL}/portal")
-
-                    // Detach from previous parent if any
+                    // 既に IIMC のページにいる可能性が高いので、URL は触らない
                     (parent as? ViewGroup)?.removeView(this)
                 }
             },
             update = { _ -> }
         )
 
-        // Bottom bar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,16 +148,15 @@ fun LoginScreen(viewModel: AssignmentViewModel) {
 
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "SSOログイン後にタップしてください",
+                text = "認証完了後にタップしてください",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
 
-    // Reload portal when returning to login (session expired)
-    DisposableEffect(Unit) {
-        WebViewFetcher.webView.loadUrl("${WebViewFetcher.BASE_URL}/portal")
-        onDispose { }
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(onClick = onBack, enabled = !isVerifying) {
+                Text("ID/パスワード入力に戻る")
+            }
+        }
     }
 }

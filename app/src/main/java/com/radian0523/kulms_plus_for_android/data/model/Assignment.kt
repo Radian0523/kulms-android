@@ -17,7 +17,8 @@ data class Assignment(
     val isChecked: Boolean,
     val cachedAt: Long,        // epoch millis
     val itemType: String,      // "assignment" or "quiz"
-    val entityId: String
+    val entityId: String,
+    val closeTime: Long? = null // epoch millis, Accept Until
 ) {
     enum class Urgency(val sortOrder: Int, val label: String, val colorHex: String) {
         OVERDUE(0, "期限切れ", "#e85555"),
@@ -52,13 +53,18 @@ data class Assignment(
     val remainingText: String
         get() {
             val dl = deadline ?: return ""
-            val diff = dl - System.currentTimeMillis()
-            if (diff < 0) return "期限切れ"
+            val now = System.currentTimeMillis()
+            val diff = dl - now
+            if (diff < 0) {
+                // 締切過ぎ: closeTime が未過ぎなら再提出受付期間
+                if (closeTime != null && closeTime > now) return "再提出受付期間"
+                return "期限切れ"
+            }
             val days = TimeUnit.MILLISECONDS.toDays(diff).toInt()
             val hours = (TimeUnit.MILLISECONDS.toHours(diff) % 24).toInt()
-            if (days > 0) return "残り${days}日${hours}時間"
-            if (hours > 0) return "残り${hours}時間"
-            val mins = TimeUnit.MILLISECONDS.toMinutes(diff).toInt()
+            val mins = (TimeUnit.MILLISECONDS.toMinutes(diff) % 60).toInt()
+            if (days > 0) return "残り${days}日${hours}時間${mins}分"
+            if (hours > 0) return "残り${hours}時間${mins}分"
             return "残り${mins}分"
         }
 

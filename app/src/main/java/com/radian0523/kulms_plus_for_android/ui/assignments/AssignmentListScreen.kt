@@ -1,6 +1,7 @@
 package com.radian0523.kulms_plus_for_android.ui.assignments
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -98,8 +101,11 @@ fun AssignmentListScreen(viewModel: AssignmentViewModel) {
                 }
                 else -> {
                     val sections = viewModel.groupedAssignments()
+                    val collapsedSections by viewModel.collapsedSections.collectAsState()
                     AssignmentList(
                         sections = sections,
+                        collapsedSections = collapsedSections,
+                        onToggleSection = { viewModel.toggleSection(it) },
                         isLoading = isLoading,
                         progress = progress,
                         lastRefreshedText = viewModel.lastRefreshedText,
@@ -114,6 +120,8 @@ fun AssignmentListScreen(viewModel: AssignmentViewModel) {
 @Composable
 private fun AssignmentList(
     sections: List<AssignmentViewModel.GroupedSection>,
+    collapsedSections: Set<String>,
+    onToggleSection: (String) -> Unit,
     isLoading: Boolean,
     progress: Pair<Int, Int>?,
     lastRefreshedText: String,
@@ -180,26 +188,40 @@ private fun AssignmentList(
 
         // Sections
         for (section in sections) {
+            val isExpanded = !collapsedSections.contains(section.id)
             item(key = "header_${section.id}") {
-                SectionHeader(section)
+                SectionHeader(
+                    section = section,
+                    isExpanded = isExpanded,
+                    onToggle = { onToggleSection(section.id) }
+                )
             }
-            items(section.assignments, key = { it.compositeKey }) { assignment ->
-                AssignmentCard(
-                    assignment = assignment
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 40.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
+            if (isExpanded) {
+                items(section.assignments, key = { it.compositeKey }) { assignment ->
+                    AssignmentCard(
+                        assignment = assignment
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 40.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SectionHeader(section: AssignmentViewModel.GroupedSection) {
+private fun SectionHeader(
+    section: AssignmentViewModel.GroupedSection,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
     Row(
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -218,6 +240,13 @@ private fun SectionHeader(section: AssignmentViewModel.GroupedSection) {
             text = "(${section.assignments.size})",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight,
+            contentDescription = if (isExpanded) "折りたたむ" else "展開する",
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
