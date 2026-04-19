@@ -45,7 +45,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.radian0523.kulms_plus_for_android.R
 import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
 import com.radian0523.kulms_plus_for_android.ui.settings.SettingsScreen
 
@@ -78,10 +80,10 @@ fun AssignmentListScreen(viewModel: AssignmentViewModel) {
                         onClick = { viewModel.fetchAll(forceRefresh = true) },
                         enabled = !isLoading
                     ) {
-                        Icon(Icons.Default.Refresh, "更新")
+                        Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
                     }
                     IconButton(onClick = { showSettings = true }) {
-                        Icon(Icons.Default.Settings, "設定")
+                        Icon(Icons.Default.Settings, stringResource(R.string.settings))
                     }
                 }
             )
@@ -173,14 +175,14 @@ private fun AssignmentList(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "課題が見つかりませんでした",
+                        stringResource(R.string.no_assignments),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("再取得")
+                        Text(stringResource(R.string.refetch))
                     }
                 }
             }
@@ -199,7 +201,8 @@ private fun AssignmentList(
             if (isExpanded) {
                 items(section.assignments, key = { it.compositeKey }) { assignment ->
                     AssignmentCard(
-                        assignment = assignment
+                        assignment = assignment,
+                        isResubmitActive = section.id != "completed" && assignment.isSubmitted
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 40.dp),
@@ -244,7 +247,7 @@ private fun SectionHeader(
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight,
-            contentDescription = if (isExpanded) "折りたたむ" else "展開する",
+            contentDescription = if (isExpanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
             modifier = Modifier.size(20.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -261,8 +264,8 @@ private fun LoadingView(progress: Pair<Int, Int>?) {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = if (progress != null) "課題を取得中... (${progress.first}/${progress.second})"
-            else "コース情報を取得中...",
+            text = if (progress != null) stringResource(R.string.loading_assignments, progress.first, progress.second)
+            else stringResource(R.string.loading_courses),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -291,7 +294,7 @@ private fun ErrorView(message: String, onRetry: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onRetry) {
-            Text("再試行")
+            Text(stringResource(R.string.retry))
         }
     }
 }

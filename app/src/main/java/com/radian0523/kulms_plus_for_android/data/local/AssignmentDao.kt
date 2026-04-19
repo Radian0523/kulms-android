@@ -27,11 +27,16 @@ interface AssignmentDao {
 
     @Transaction
     suspend fun replaceAll(assignments: List<Assignment>) {
-        // Preserve checked state
-        val checkedKeys = getAll().filter { it.isChecked }.map { it.compositeKey }.toSet()
+        // Preserve checked state (with legacy key fallback for compositeKey migration)
+        val existing = getAll().filter { it.isChecked }
+        val checkedKeys = existing.map { it.compositeKey }.toSet()
+        // Build legacy key set: old format was "courseId:itemType:title"
+        val legacyCheckedKeys = existing.map { "${it.courseId}:${it.itemType}:${it.title}" }.toSet()
         deleteAll()
         insertAll(assignments.map {
-            if (checkedKeys.contains(it.compositeKey)) it.copy(isChecked = true) else it
+            val isChecked = checkedKeys.contains(it.compositeKey)
+                    || legacyCheckedKeys.contains("${it.courseId}:${it.itemType}:${it.title}")
+            if (isChecked) it.copy(isChecked = true) else it
         })
     }
 }

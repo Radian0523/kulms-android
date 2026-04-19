@@ -48,7 +48,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.radian0523.kulms_plus_for_android.R
 import com.radian0523.kulms_plus_for_android.data.local.CredentialStore
 import com.radian0523.kulms_plus_for_android.data.remote.LoginResult
 import com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher
@@ -127,7 +129,7 @@ fun CredentialLoginScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "京都大学 学習支援システム",
+            stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -136,7 +138,7 @@ fun CredentialLoginScreen(
         OutlinedTextField(
             value = username,
             onValueChange = { username = it; errorText = null },
-            label = { Text("ECS-ID / SPS-ID") },
+            label = { Text(stringResource(R.string.label_username)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -161,7 +163,7 @@ fun CredentialLoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it; errorText = null },
-            label = { Text("パスワード") },
+            label = { Text(stringResource(R.string.label_password)) },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None
                 else PasswordVisualTransformation(),
@@ -187,7 +189,7 @@ fun CredentialLoginScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (passwordVisible) "パスワードを隠す" else "パスワードを表示"
+                        contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                     )
                 }
             },
@@ -219,7 +221,7 @@ fun CredentialLoginScreen(
                         enabled = !isSubmitting
                     )
                     Text(
-                        "この端末にパスワードを保存（暗号化）",
+                        stringResource(R.string.save_password),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -260,9 +262,9 @@ fun CredentialLoginScreen(
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.height(0.dp))
-                Text("  ログイン中...")
+                Text("  " + stringResource(R.string.logging_in))
             } else {
-                Text("ログイン")
+                Text(stringResource(R.string.login))
             }
         }
 
@@ -271,10 +273,10 @@ fun CredentialLoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextButton(onClick = onRequireWebViewLogin, enabled = !isSubmitting) {
-            Text("Web ブラウザでログイン")
+            Text(stringResource(R.string.login_browser))
         }
         Text(
-            "（パスキー / 多要素認証を使う場合）",
+            stringResource(R.string.login_browser_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

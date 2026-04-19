@@ -18,11 +18,12 @@ data class Assignment(
     val cachedAt: Long,        // epoch millis
     val itemType: String,      // "assignment" or "quiz"
     val entityId: String,
-    val closeTime: Long? = null // epoch millis, Accept Until
+    val closeTime: Long? = null, // epoch millis, Accept Until
+    val allowResubmission: Boolean = false
 ) {
     enum class Urgency(val sortOrder: Int, val label: String, val colorHex: String) {
         OVERDUE(0, "期限切れ", "#e85555"),
-        DANGER(1, "緊急", "#e85555"),
+        DANGER(1, "24時間以内", "#e85555"),
         WARNING(2, "5日以内", "#d7aa57"),
         SUCCESS(3, "14日以内", "#62b665"),
         OTHER(4, "その他", "#777777");

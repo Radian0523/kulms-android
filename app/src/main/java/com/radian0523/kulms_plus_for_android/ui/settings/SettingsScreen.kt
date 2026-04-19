@@ -48,21 +48,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.radian0523.kulms_plus_for_android.R
 import com.radian0523.kulms_plus_for_android.notification.NotificationHelper
 import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
 
 private val PRESET_OFFSETS = listOf(
-    "10分前" to 10,
-    "30分前" to 30,
-    "1時間前" to 60,
-    "3時間前" to 180,
-    "5時間前" to 300,
-    "12時間前" to 720,
-    "24時間前" to 1440,
-    "2日前" to 2880,
-    "3日前" to 4320,
+    Pair(R.string.offset_10m, 10),
+    Pair(R.string.offset_30m, 30),
+    Pair(R.string.offset_1h, 60),
+    Pair(R.string.offset_3h, 180),
+    Pair(R.string.offset_5h, 300),
+    Pair(R.string.offset_12h, 720),
+    Pair(R.string.offset_24h, 1440),
+    Pair(R.string.offset_2d, 2880),
+    Pair(R.string.offset_3d, 4320),
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -77,7 +79,6 @@ fun SettingsScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showOffsetPicker by remember { mutableStateOf(false) }
 
-    var autoComplete by remember { mutableStateOf(viewModel.autoComplete) }
     var notificationOffsets by remember {
         mutableStateOf(NotificationHelper.getNotificationOffsets(context))
     }
@@ -90,10 +91,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("設定") },
+                title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "閉じる")
+                        Icon(Icons.Default.Close, stringResource(R.string.close))
                     }
                 }
             )
@@ -105,40 +106,15 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Auto-complete section
-            SectionHeader("課題更新")
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("提出状態の自動判定", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = autoComplete,
-                    onCheckedChange = {
-                        autoComplete = it
-                        viewModel.setAutoComplete(it)
-                    }
-                )
-            }
-            Text(
-                "OFFにすると手動チェックのみで完了判定\n※クイズ・テストは手動チェックのみ",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)
-            )
-            HorizontalDivider()
-
             // Notifications section
-            SectionHeader("通知")
+            SectionHeader(stringResource(R.string.section_notifications))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("締切リマインド", modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.deadline_remind), modifier = Modifier.weight(1f))
                 Switch(
                     checked = notificationsEnabled,
                     onCheckedChange = {
@@ -155,7 +131,7 @@ fun SettingsScreen(
             if (notificationsEnabled) {
                 Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
                     Text(
-                        "通知タイミング",
+                        stringResource(R.string.notification_timing),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -175,12 +151,12 @@ fun SettingsScreen(
                                         viewModel.rescheduleNotifications()
                                     }
                                 },
-                                label = { Text(NotificationHelper.formatOffsetLabel(offset)) },
+                                label = { Text(NotificationHelper.formatOffsetLabel(offset, context)) },
                                 trailingIcon = if (notificationOffsets.size > 1) {
                                     {
                                         Icon(
                                             Icons.Default.Close,
-                                            contentDescription = "削除",
+                                            contentDescription = stringResource(R.string.delete),
                                             modifier = Modifier.size(InputChipDefaults.IconSize)
                                         )
                                     }
@@ -190,7 +166,7 @@ fun SettingsScreen(
                         if (notificationOffsets.size < 5) {
                             AssistChip(
                                 onClick = { showOffsetPicker = true },
-                                label = { Text("追加") },
+                                label = { Text(stringResource(R.string.add)) },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Default.Add,
@@ -210,10 +186,10 @@ fun SettingsScreen(
                 val available = PRESET_OFFSETS.filter { it.second !in notificationOffsets }
                 AlertDialog(
                     onDismissRequest = { showOffsetPicker = false },
-                    title = { Text("通知タイミングを追加") },
+                    title = { Text(stringResource(R.string.add_timing)) },
                     text = {
                         Column {
-                            for ((label, minutes) in available) {
+                            for ((labelRes, minutes) in available) {
                                 TextButton(
                                     onClick = {
                                         val updated = notificationOffsets + minutes
@@ -224,7 +200,7 @@ fun SettingsScreen(
                                     },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(label)
+                                    Text(stringResource(labelRes))
                                 }
                             }
                         }
@@ -232,18 +208,18 @@ fun SettingsScreen(
                     confirmButton = {},
                     dismissButton = {
                         TextButton(onClick = { showOffsetPicker = false }) {
-                            Text("キャンセル")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )
             }
 
             // Info section
-            SectionHeader("情報")
+            SectionHeader(stringResource(R.string.section_info))
             if (lastRefreshed != null) {
-                InfoRow("最終更新", viewModel.lastRefreshedText.removePrefix("最終更新: "))
+                InfoRow(stringResource(R.string.last_updated), viewModel.lastRefreshedText.substringAfter(": ", ""))
             }
-            InfoRow("課題数", "${assignments.size}")
+            InfoRow(stringResource(R.string.assignment_count), "${assignments.size}")
             HorizontalDivider()
 
             // Feedback & Support
@@ -267,7 +243,7 @@ fun SettingsScreen(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "ご意見・要望を送る",
+                    stringResource(R.string.send_feedback),
                     modifier = Modifier.padding(start = 12.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -291,7 +267,7 @@ fun SettingsScreen(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "ホームページ",
+                    stringResource(R.string.homepage),
                     modifier = Modifier.padding(start = 12.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -306,7 +282,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("ログアウト", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.logout), color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -314,20 +290,20 @@ fun SettingsScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("ログアウトしますか？") },
-            text = { Text("セッションとキャッシュが削除されます") },
+            title = { Text(stringResource(R.string.logout_confirm)) },
+            text = { Text(stringResource(R.string.logout_confirm_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
                     viewModel.logout()
                     onDismiss()
                 }) {
-                    Text("ログアウト", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.logout), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

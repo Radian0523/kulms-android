@@ -24,13 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.radian0523.kulms_plus_for_android.R
 import com.radian0523.kulms_plus_for_android.data.model.Assignment
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AssignmentCard(
-    assignment: Assignment
+    assignment: Assignment,
+    isResubmitActive: Boolean = false
 ) {
     val context = LocalContext.current
     val urgencyColor = parseColor(assignment.urgency.colorHex)
@@ -55,7 +58,7 @@ fun AssignmentCard(
                 )
                 if (assignment.itemType == "quiz") {
                     Text(
-                        text = "テスト",
+                        text = stringResource(R.string.badge_quiz),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFF9C27B0),
                         modifier = Modifier
@@ -112,22 +115,50 @@ fun AssignmentCard(
                 }
             }
 
-            // Status badge
-            if (assignment.isSubmitted) {
-                val statusLabel = when {
-                    assignment.status.contains("評定済") || assignment.status.lowercase().contains("graded") || assignment.status.contains("採点済") -> "評定済"
-                    assignment.status.contains("提出済") || assignment.status.lowercase().contains("submitted") -> "提出済"
-                    else -> assignment.status
+            // Status badge (shown for all submitted)
+            // Resubmission badge (only when resubmitActive — matches extension's _resubmitActive)
+            if (assignment.isSubmitted || isResubmitActive) {
+                FlowRow(
+                    modifier = Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (assignment.isSubmitted) {
+                        val statusLabel = when {
+                            assignment.status.contains("評定済") || assignment.status.lowercase().contains("graded") || assignment.status.contains("採点済") -> stringResource(R.string.status_graded)
+                            assignment.status.contains("提出済") || assignment.status.lowercase().contains("submitted") -> stringResource(R.string.status_submitted)
+                            else -> assignment.status
+                        }
+                        Text(
+                            text = statusLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF4CAF50),
+                            modifier = Modifier
+                                .background(Color(0xFF4CAF50).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 6.dp, vertical = 1.dp)
+                        )
+                    }
+                    if (isResubmitActive) {
+                        if (assignment.allowResubmission) {
+                            Text(
+                                text = stringResource(R.string.badge_resubmit),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF4CAF50),
+                                modifier = Modifier
+                                    .background(Color(0xFF4CAF50).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 6.dp, vertical = 1.dp)
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.badge_no_resubmit),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF777777),
+                                modifier = Modifier
+                                    .background(Color(0xFF777777).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 6.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                 }
-                Text(
-                    text = statusLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF4CAF50),
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .background(Color(0xFF4CAF50).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 6.dp, vertical = 1.dp)
-                )
             }
         }
     }

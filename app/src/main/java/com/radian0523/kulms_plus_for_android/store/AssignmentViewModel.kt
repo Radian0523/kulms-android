@@ -8,6 +8,7 @@ import com.radian0523.kulms_plus_for_android.data.local.AppDatabase
 import com.radian0523.kulms_plus_for_android.data.model.Assignment
 import com.radian0523.kulms_plus_for_android.data.remote.SakaiApiClient
 import com.radian0523.kulms_plus_for_android.data.remote.SessionExpiredException
+import com.radian0523.kulms_plus_for_android.R
 import com.radian0523.kulms_plus_for_android.notification.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,11 +58,7 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
     )
 
     val autoComplete: Boolean
-        get() = prefs.getBoolean("autoComplete", true)
-
-    fun setAutoComplete(enabled: Boolean) {
-        prefs.edit().putBoolean("autoComplete", enabled).apply()
-    }
+        get() = true
 
     fun toggleSection(sectionId: String) {
         val current = _collapsedSections.value.toMutableSet()
@@ -77,14 +74,16 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
     fun groupedAssignments(): List<GroupedSection> {
         val all = _assignments.value
         val auto = autoComplete
-        // Hide overdue + completed (submitted or checked)
+        // Hide completed + closed (closeTime past)
         val visible = all.filter { a ->
             val isCompleted = a.isChecked || (auto && a.isSubmitted)
-            !(a.urgency == Assignment.Urgency.OVERDUE && isCompleted)
+            val isClosed = a.closeTime != null && a.closeTime < System.currentTimeMillis()
+            !(isCompleted && isClosed)
         }
 
         val active = visible.filter { !(it.isChecked || (auto && it.isSubmitted)) }
         val completed = visible.filter { it.isChecked || (auto && it.isSubmitted) }
+            .sortedByDescending { it.deadline ?: 0L }
 
         val sorted = active.sortedBy { it.deadline ?: Long.MAX_VALUE }
 
@@ -95,12 +94,12 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
         val other = sorted.filter { it.urgency == Assignment.Urgency.OTHER }
 
         val sections = mutableListOf<GroupedSection>()
-        if (overdue.isNotEmpty()) sections.add(GroupedSection("overdue", "遅延提出", "#e85555", overdue))
-        if (danger.isNotEmpty()) sections.add(GroupedSection("danger", "緊急", "#e85555", danger))
-        if (warning.isNotEmpty()) sections.add(GroupedSection("warning", "5日以内", "#d7aa57", warning))
-        if (success.isNotEmpty()) sections.add(GroupedSection("success", "14日以内", "#62b665", success))
-        if (other.isNotEmpty()) sections.add(GroupedSection("other", "その他", "#777777", other))
-        if (completed.isNotEmpty()) sections.add(GroupedSection("completed", "完了済み", "#777777", completed))
+        if (overdue.isNotEmpty()) sections.add(GroupedSection("overdue", getApplication<android.app.Application>().getString(R.string.section_overdue), "#e85555", overdue))
+        if (danger.isNotEmpty()) sections.add(GroupedSection("danger", getApplication<android.app.Application>().getString(R.string.section_danger), "#e85555", danger))
+        if (warning.isNotEmpty()) sections.add(GroupedSection("warning", getApplication<android.app.Application>().getString(R.string.section_warning), "#d7aa57", warning))
+        if (success.isNotEmpty()) sections.add(GroupedSection("success", getApplication<android.app.Application>().getString(R.string.section_success), "#62b665", success))
+        if (other.isNotEmpty()) sections.add(GroupedSection("other", getApplication<android.app.Application>().getString(R.string.section_other), "#777777", other))
+        if (completed.isNotEmpty()) sections.add(GroupedSection("completed", getApplication<android.app.Application>().getString(R.string.section_completed), "#777777", completed))
         return sections
     }
 
@@ -167,7 +166,7 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
                 _isLoggedIn.value = false
             } catch (e: Exception) {
                 Log.e(TAG, "fetchAll error", e)
-                _errorMessage.value = e.localizedMessage ?: "エラーが発生しました"
+                _errorMessage.value = e.localizedMessage ?: getApplication<android.app.Application>().getString(R.string.error_generic)
             }
             _isLoading.value = false
         }
@@ -207,6 +206,6 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
         get() {
             val last = _lastRefreshed.value ?: return ""
             val ago = ((System.currentTimeMillis() - last) / 60000).toInt()
-            return if (ago < 1) "最終更新: たった今" else "最終更新: ${ago}分前"
+            return if (ago < 1) getApplication<android.app.Application>().getString(R.string.last_updated_now) else getApplication<android.app.Application>().getString(R.string.last_updated_mins, ago)
         }
 }

@@ -75,6 +75,28 @@ object SakaiApiClient {
         }
     }
 
+    // MARK: - Assignment Tool URL (via pages.json)
+
+    private suspend fun fetchAssignmentToolUrl(siteId: String): String? {
+        return try {
+            val text = WebViewFetcher.fetch("/direct/site/$siteId/pages.json")
+            val pages = gson.fromJson(text, Array<PageEntry>::class.java) ?: emptyArray()
+            for (page in pages) {
+                for (tool in page.tools ?: emptyList()) {
+                    if (tool.toolId == "sakai.assignment.grades" && tool.id != null) {
+                        return "${WebViewFetcher.BASE_URL}/portal/site/$siteId/tool/${tool.id}"
+                    }
+                }
+            }
+            null
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchAssignmentToolUrl($siteId) error", e)
+            null
+        }
+    }
+
     // MARK: - Individual Assignment Detail
 
     private suspend fun fetchAssignmentItem(entityId: String): RawAssignmentItem? {
@@ -94,12 +116,23 @@ object SakaiApiClient {
     data class CourseResult(
         val course: Site,
         val assignments: List<AssignmentWithDetail>,
-        val quizzes: List<RawQuiz>
+        val quizzes: List<RawQuiz>,
+        val assignmentToolUrl: String? = null
     )
 
     data class AssignmentWithDetail(
         val raw: RawAssignment,
-        val submissions: List<RawSubmission>
+        val submissions: List<RawSubmission>,
+        val itemAllowResubmission: Boolean? = null
+    )
+
+    // pages.json models for fetching assignment tool URL
+    data class PageEntry(
+        val tools: List<ToolEntry>?
+    )
+    data class ToolEntry(
+        val id: String?,
+        val toolId: String?
     )
 
     suspend fun fetchAllAssignments(
@@ -115,13 +148,18 @@ object SakaiApiClient {
                     val rawAssignments = fetchAssignments(course.id)
                     val rawQuizzes = fetchQuizzes(course.id)
 
+                    // Fetch assignment tool URL via pages.json
+                    val toolUrl = if (rawAssignments.isNotEmpty()) {
+                        fetchAssignmentToolUrl(course.id)
+                    } else null
+
                     // Fetch individual assignment details
                     val enriched = rawAssignments.map { raw ->
                         async {
                             val entityId = raw.assignmentId
                             if (!entityId.isNullOrEmpty()) {
                                 val item = fetchAssignmentItem(entityId)
-                                AssignmentWithDetail(raw, item?.submissions ?: emptyList())
+                                AssignmentWithDetail(raw, item?.submissions ?: emptyList(), item?.allowResubmission)
                             } else {
                                 AssignmentWithDetail(raw, emptyList())
                             }
@@ -133,7 +171,7 @@ object SakaiApiClient {
                         onProgress?.invoke(completed, courses.size)
                     }
 
-                    CourseResult(course, enriched, rawQuizzes)
+                    CourseResult(course, enriched, rawQuizzes, toolUrl)
                 }
             }
         }.awaitAll()
@@ -164,7 +202,8 @@ object SakaiApiClient {
         val submitted: Boolean?,
         val submissionStatus: String?,
         val gradeDisplay: String?,
-        val grade: String?
+        val grade: String?,
+        val allowResubmission: Boolean?
     ) {
         /** Extract assignment ID from entityURL (e.g. "/direct/assignment/a/{uuid}") */
         val assignmentId: String?
@@ -185,7 +224,8 @@ object SakaiApiClient {
     )
 
     data class RawAssignmentItem(
-        val submissions: List<RawSubmission>?
+        val submissions: List<RawSubmission>?,
+        val allowResubmission: Boolean?
     )
 
     data class RawSubmission(
@@ -196,7 +236,8 @@ object SakaiApiClient {
         val draft: Boolean?,
         val returned: Boolean?,
         val status: String?,
-        val dateSubmittedEpochSeconds: Long?
+        val dateSubmittedEpochSeconds: Long?,
+        val properties: Map<String, Any?>?
     )
 
     /**
@@ -226,6 +267,8 @@ object SakaiApiClient {
 
         for (result in results) {
             val course = result.course
+            val courseAssignUrl = result.assignmentToolUrl
+                ?: "${WebViewFetcher.BASE_URL}/portal/site/${course.id}"
 
             // Process assignments
             for (detail in result.assignments) {
@@ -277,27 +320,35 @@ object SakaiApiClient {
                     grade = raw.gradeDisplay ?: raw.grade ?: ""
                 }
 
-                val assignUrl = when {
-                    raw.entityURL?.startsWith("http") == true -> raw.entityURL
-                    raw.entityURL != null -> "${WebViewFetcher.BASE_URL}${raw.entityURL}"
-                    else -> "${WebViewFetcher.BASE_URL}/portal/site/${course.id}"
+                // allowResubmission: check both list API and individual API
+                val allowResubFlag = raw.allowResubmission == true || detail.itemAllowResubmission == true
+                val allowResub = if (!allowResubFlag) {
+                    false
+                } else {
+                    val remain = submission?.properties?.get("allow_resubmit_number")
+                    remain != "0" && remain != 0
                 }
+
+                // compositeKey: entityId-based (matching extension's getCheckedKey)
+                val entityId = raw.assignmentId ?: ""
+                val compositeKey = if (entityId.isNotEmpty()) entityId else "${course.id}:${raw.title ?: ""}"
 
                 assignments.add(
                     Assignment(
-                        compositeKey = "${course.id}:assignment:${raw.title ?: ""}",
+                        compositeKey = compositeKey,
                         courseId = course.id,
                         courseName = course.title,
                         title = raw.title ?: "",
-                        url = assignUrl,
+                        url = courseAssignUrl,
                         deadline = deadline,
                         status = status,
                         grade = grade,
                         isChecked = false,
                         cachedAt = now,
                         itemType = "assignment",
-                        entityId = raw.assignmentId ?: "",
-                        closeTime = raw.closeTime?.epochMillis
+                        entityId = entityId,
+                        closeTime = raw.closeTime?.epochMillis,
+                        allowResubmission = allowResub
                     )
                 )
             }
@@ -311,9 +362,13 @@ object SakaiApiClient {
 
                 val status = ""
 
+                // compositeKey: entityId-based (matching extension's getCheckedKey)
+                val entityId = quiz.publishedAssessmentId?.toString() ?: ""
+                val compositeKey = if (entityId.isNotEmpty()) entityId else "${course.id}:${quiz.title ?: ""}"
+
                 assignments.add(
                     Assignment(
-                        compositeKey = "${course.id}:quiz:${quiz.title ?: ""}",
+                        compositeKey = compositeKey,
                         courseId = course.id,
                         courseName = course.title,
                         title = quiz.title ?: "",
@@ -324,7 +379,7 @@ object SakaiApiClient {
                         isChecked = false,
                         cachedAt = now,
                         itemType = "quiz",
-                        entityId = quiz.publishedAssessmentId?.toString() ?: "",
+                        entityId = entityId,
                         closeTime = quiz.retractDate?.epochMillis
                     )
                 )

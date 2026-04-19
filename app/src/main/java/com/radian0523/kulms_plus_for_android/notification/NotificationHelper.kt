@@ -21,10 +21,10 @@ object NotificationHelper {
     fun createChannel(context: Context) {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "締切リマインド",
+            context.getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "課題の締切通知"
+            description = context.getString(R.string.notif_channel_desc)
         }
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
@@ -44,18 +44,20 @@ object NotificationHelper {
         prefs.edit().putStringSet(OFFSETS_KEY, offsets.map { it.toString() }.toSet()).apply()
     }
 
-    fun formatOffsetLabel(minutes: Int): String {
+    fun formatOffsetLabel(minutes: Int, context: Context? = null): String {
         return when {
-            minutes >= 1440 && minutes % 1440 == 0 -> "${minutes / 1440}日前"
-            minutes >= 60 && minutes % 60 == 0 -> "${minutes / 60}時間前"
-            else -> "${minutes}分前"
+            minutes >= 1440 && minutes % 1440 == 0 -> context?.getString(R.string.offset_days_before, minutes / 1440) ?: "${minutes / 1440}日前"
+            minutes >= 60 && minutes % 60 == 0 -> context?.getString(R.string.offset_hours_before, minutes / 60) ?: "${minutes / 60}時間前"
+            else -> context?.getString(R.string.offset_mins_before, minutes) ?: "${minutes}分前"
         }
     }
 
-    private fun notificationContent(assignment: Assignment, offsetMinutes: Int): Pair<String, String> {
-        val label = formatOffsetLabel(offsetMinutes).removeSuffix("前")
-        val title = if (offsetMinutes <= 60) "課題の締切まもなく" else "課題の締切が近づいています"
-        val body = "「${assignment.title}」（${assignment.courseName}）の締切まで$label"
+    private fun notificationContent(context: Context, assignment: Assignment, offsetMinutes: Int): Pair<String, String> {
+        val label = formatOffsetLabel(offsetMinutes, context).let {
+            if (it.endsWith("前")) it.dropLast(1) else it
+        }
+        val title = if (offsetMinutes <= 60) context.getString(R.string.notif_title_soon) else context.getString(R.string.notif_title_approaching)
+        val body = context.getString(R.string.notif_body, assignment.title, assignment.courseName, label)
         return title to body
     }
 
@@ -84,7 +86,7 @@ object NotificationHelper {
                 val triggerAt = deadline - offset.toLong() * 60 * 1000
                 if (triggerAt <= now) continue
 
-                val (title, body) = notificationContent(assignment, offset)
+                val (title, body) = notificationContent(context, assignment, offset)
                 candidates.add(Candidate(
                     id = "kulms-${offset}m-${assignment.compositeKey}".hashCode(),
                     title = title,

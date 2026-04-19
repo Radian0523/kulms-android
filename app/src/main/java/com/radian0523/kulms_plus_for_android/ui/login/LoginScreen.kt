@@ -23,7 +23,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.radian0523.kulms_plus_for_android.R
 import androidx.compose.ui.viewinterop.AndroidView
 import com.radian0523.kulms_plus_for_android.data.remote.WebViewFetcher
 import com.radian0523.kulms_plus_for_android.store.AssignmentViewModel
@@ -69,6 +72,7 @@ private fun WebViewLoginPanel(
     viewModel: AssignmentViewModel,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var isVerifying by remember { mutableStateOf(false) }
     var errorText by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -123,10 +127,10 @@ private fun WebViewLoginPanel(
                                 viewModel.setLoggedIn(true)
                                 viewModel.fetchAll(forceRefresh = true)
                             } else {
-                                errorText = "セッションが確認できません。ログインしてから再度タップしてください。"
+                                errorText = context.getString(R.string.session_not_confirmed)
                             }
                         } catch (e: Exception) {
-                            errorText = "確認に失敗しました: ${e.localizedMessage}"
+                            errorText = context.getString(R.string.verification_failed, e.localizedMessage ?: "")
                         }
                         isVerifying = false
                     }
@@ -140,22 +144,22 @@ private fun WebViewLoginPanel(
                         color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
-                    Text("  認証を確認中...", color = MaterialTheme.colorScheme.onPrimary)
+                    Text("  " + stringResource(R.string.verifying), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("ログイン完了 → 課題一覧へ")
+                    Text(stringResource(R.string.login_done))
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "認証完了後にタップしてください",
+                text = stringResource(R.string.tap_after_auth),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
             TextButton(onClick = onBack, enabled = !isVerifying) {
-                Text("ID/パスワード入力に戻る")
+                Text(stringResource(R.string.back_to_credentials))
             }
         }
     }
