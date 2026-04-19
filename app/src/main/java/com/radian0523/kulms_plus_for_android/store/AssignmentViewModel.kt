@@ -74,11 +74,11 @@ class AssignmentViewModel(application: Application) : AndroidViewModel(applicati
     fun groupedAssignments(): List<GroupedSection> {
         val all = _assignments.value
         val auto = autoComplete
-        // Hide completed + closed (closeTime past)
+        // 自動判定で完了 + 期限切れのみ非表示（手動チェック済みは常に表示）
         val visible = all.filter { a ->
-            val isCompleted = a.isChecked || (auto && a.isSubmitted)
+            val isAutoCompleted = auto && a.isSubmitted
             val isClosed = a.closeTime != null && a.closeTime < System.currentTimeMillis()
-            !(isCompleted && isClosed)
+            !(isAutoCompleted && isClosed)
         }
 
         val active = visible.filter { !(it.isChecked || (auto && it.isSubmitted)) }
